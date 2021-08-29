@@ -1,23 +1,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "structs.h"
 
-typedef enum {false, true} bool;
+#include "structs.h"
+#include "server.h"
+
+
+//typedef enum {false, true} bool;
 //declaraciones
 
 #define LSIZ 128
 #define RSIZ 10
 
 void menuPrincipal();
+
 void menuProfesores();
+void incluirProfesor();
+void listarProfesores();
+void borrarProfesores();
+
+void informacionDeCursos();
 void leerArchivo();
 void transformarArchivo(FILE *archivo);
+
+void pausa();
 void salir();
 
 
 
 int main(){
+    conectarServidor();
     menuPrincipal();
     return 0;
 }
@@ -56,6 +68,7 @@ void menuPrincipal(){
         
         case '3':
             printf("\n======\nopcion 3\n");
+            informacionDeCursos();
             break;
         
         case '4':
@@ -92,7 +105,8 @@ void menuPrincipal(){
 
 
 void menuProfesores(){
-
+    system("clear");
+    printf("\n\nmenuProfesores()....\n\n");
     char opcion;
     char repetir = 1;
     do{
@@ -110,17 +124,15 @@ void menuProfesores(){
         switch (opcion)
         {
         case '1':
-            
-            printf("opcion 1\n");
-            leerArchivo();
+            incluirProfesor();
             break;
         
         case '2':
-            printf("\n======\nopcion 2\n");
+            listarProfesores();
             break;
         
         case '3':
-            printf("\n======\nopcion 3\n");
+            borrarProfesores();
             break;
         
         case '4':
@@ -159,18 +171,6 @@ void leerArchivo(){
         fseek(archivo, 0L, SEEK_SET); 
 
         transformarArchivo(archivo);
-        // int i = 0;
-        // int tot = 0;       
-        // while(fgets(line[i], LSIZ, archivo)){
-        //     line[i][strlen(line[i])-1]='\0';
-        //     i++;
-        // }
-        // tot = i;
-        // printf("contenido del archivo\n");
-        // for(i = 0; i<tot; ++i){
-        //     printf(" %s\n", line[i]);
-        // }
-        // printf("------------------------------------\n");
     }
     fclose(archivo);
     
@@ -197,7 +197,85 @@ void transformarArchivo(FILE *archivo){
 
 }
 
+///////////////////////PROFESORES///////////////////////
+void incluirProfesor()
+{
+    system("clear");
+    printf("\n\nincluirProfesor().......\n\n\n");
+    struct Profesor pProfesor;
 
+    printf("\nIngrese el número de cédula del profesor:\t");
+    while(scanf("%d", &pProfesor.cedula)!=1){
+        while((getchar()!='\n'));
+        printf("El valor ingresado es incorrecto\nPor favor intentelo de nuevo\n");
+        printf("\nIngrese el número de cédula del profesor:\t");
+    }
+
+    printf("\nIngrese el nombre del profesor:\t");
+    scanf(" %[^\n]", pProfesor.nombre);
+
+    insertProfesor(&pProfesor);
+    getchar();
+    pausa();
+    freeMysql();
+    return;
+}
+
+
+void listarProfesores(){
+    system("clear");
+    printf("\n\ninformacionDeProfesores()....\n\n");
+    getInfoProfesores();
+
+    printf("\tCédula\t\tNombre\n");
+    int i=0;
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        printf("%d.\t%s\t%s\t\t\n",i,row[0], row[1]);
+        i++;
+    }
+    freeMysql();
+    //pausa();
+    return;
+}
+
+
+void borrarProfesores(){
+    system("clear");
+    printf("\n\nborrarProfesores()....\n\n");
+    delProfesores();
+    freeMysql();
+    pausa();
+    return;
+}
+/////////////////////////////////////////////////////////
+
+
+
+void informacionDeCursos(){
+    system("clear");
+    printf("\n\ninformacionDeCursos()....\n\n");
+    getInformacionDeCursos();
+
+    printf("\tID Curso\tID Carrera\tNombre\n");
+    int i=0;
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        printf("%d.\t%s\t\t%s\t\t%s\n",i,row[0], row[1], row[2]);
+        i++;
+    }
+    pausa();
+    freeMysql();
+    return;
+}
+
+
+void pausa(){
+    getchar();
+    printf("\n\nPresione enter para continuar....");
+    getchar();
+    return;
+}
 void salir(){
     exit(0);
 }
