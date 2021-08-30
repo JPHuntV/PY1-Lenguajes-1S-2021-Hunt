@@ -19,6 +19,13 @@ void incluirProfesor();
 void listarProfesores();
 void borrarProfesores();
 
+
+void menuCursosXPeriodo();
+void incluirCursosXPeriodo();
+void listarCursosXPeriodo();
+void borrarCursosXPeriodo();
+
+void getStructCursos(struct CursoXPeriodo *pCursosXPeriodo);
 void informacionDeCursos();
 void leerArchivo();
 void transformarArchivo(FILE *archivo);
@@ -72,7 +79,7 @@ void menuPrincipal(){
             break;
         
         case '4':
-            printf("opcion 4\n");
+            menuCursosXPeriodo();
             break;
         
         case '5':
@@ -235,7 +242,7 @@ void listarProfesores(){
         i++;
     }
     freeMysql();
-    //pausa();
+    pausa();
     return;
 }
 
@@ -255,8 +262,7 @@ void borrarProfesores(){
 void informacionDeCursos(){
     system("clear");
     printf("\n\ninformacionDeCursos()....\n\n");
-    getInformacionDeCursos();
-
+    getInfoCursos();
     printf("\tID Curso\tID Carrera\tNombre\n");
     int i=0;
     while ((row = mysql_fetch_row(res)) != NULL)
@@ -266,6 +272,159 @@ void informacionDeCursos(){
     }
     pausa();
     freeMysql();
+    return;
+}
+//////////////////////////////////////////////////////////////////////
+
+void menuCursosXPeriodo(){
+    system("clear");
+    printf("\n\nmenuCursosXPeriodo()....\n\n");
+    char opcion;
+    char repetir = 1;
+    do{
+        
+        printf("#####   Cursos por periodo  #####\n\n");
+        printf("1.Incluir curso por periodo. \n");
+        printf("2.Listar cursos por periodo. \n");
+        printf("3.Borrar cursos por periodo\n");
+        printf("4.Volver al menú principal\n");
+        printf("5.Salir\n");
+        printf("#############################\n");
+        printf("Seleccione una opcion del 1 al 5:\t");
+
+        scanf(" %c", &opcion);
+        switch (opcion)
+        {
+        case '1':
+            incluirCursosXPeriodo();
+            break;
+        
+        case '2':
+            listarCursosXPeriodo();
+            pausa();
+            break;
+        
+        case '3':
+            borrarCursosXPeriodo();
+            break;
+        
+        case '4':
+            repetir = 0;
+            break;
+    
+        case '5':
+            salir();
+        
+        default:
+            printf("test\n");
+            break;
+        }
+    }while(repetir);
+    return;
+}
+
+void incluirCursosXPeriodo(){
+    system("clear");
+    printf("\n\nIncluirCursosXPeriodo()...... \n");
+    int cantidadCursos = getInfoCursos();
+    //printf("Cantidad:%d\n", cantidadCursos);//
+    struct CursoXPeriodo pCursoXPeriodo;
+    char* cursos[cantidadCursos];
+
+    if(cantidadCursos == 0){
+        printf("\n\nAun no existen cursos registrados.\nRegistre un curso en intente de nuevo\n");
+        freeMysql();
+        return;
+    }
+    int i=0;
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        printf("%d.\t%s\t\t%s\t\t%s\n",i,row[0], row[1], row[2]);
+        cursos[i] = row[0];
+        i++;
+    }
+    int numCurso;
+    printf("\nDigite el numero de curso que quiere asociar:\t");
+    scanf("%d", &numCurso);
+    pCursoXPeriodo.codigoCurso=cursos[numCurso];
+    //printf("elemento\n%s",pCursoXPeriodo.codigoCurso);
+
+    freeMysql();
+
+    printf("\nDigite el año en el que se va a cursar:\t");
+    scanf("%d", &pCursoXPeriodo.anio);
+   // printf("Año%d\n",pCursoXPeriodo.anio);
+
+    printf("\nDigite el periodo en el que se va a cursar:\t");
+    scanf("%d", &pCursoXPeriodo.periodo);
+//    printf("Año%d\n",pCursoXPeriodo.periodo);
+
+    printf("\nDigite el numero del grupo:\t");
+    scanf("%d", &pCursoXPeriodo.grupo);
+   // printf("Año%d\n",pCursoXPeriodo.grupo);
+
+    int cantidadProfesores = getInfoProfesores();
+    if(cantidadProfesores ==0){
+        printf("\nAun no existen profesores registrados.\nRegistre un profesor e intente de nuevo.\n");
+        freeMysql();
+        return;
+    }
+    printf("\tCédula\t\tNombre\n");
+    char *profesores[cantidadProfesores];
+    i=0;
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        printf("%d.\t%s\t%s\t\t\n",i,row[0], row[1]);
+        profesores[i] = row[0];
+        i++;
+    }
+
+    int numProf;
+    printf("\nDigite el numero del profresor que quiere asociar:\t");
+    scanf("%d", &numProf);
+    pCursoXPeriodo.cedProfesor=profesores[numProf];
+    //printf("profe\n%s",pCursoXPeriodo.cedProfesor);
+
+    freeMysql();
+
+    printf("\nDigite la cantidad de estudiantes que admitirá el curso:\t");
+    scanf("%d", &pCursoXPeriodo.cantidadEstudiantes);
+    //printf("CantEstudiantes:%d\n",pCursoXPeriodo.cantidadEstudiantes);
+    
+
+    printf("\nStruct:\nCodigoCurso:%s\tAño:%d\tPeriodo:%d\tGrupo:\t%dProfesor:%s\tCantidad:%d\n", 
+        pCursoXPeriodo.codigoCurso, pCursoXPeriodo.anio, pCursoXPeriodo.periodo, pCursoXPeriodo.grupo, 
+        pCursoXPeriodo.cedProfesor, pCursoXPeriodo.cantidadEstudiantes);
+
+    insertCursoXPeriodo(&pCursoXPeriodo);
+    freeMysql();
+    pausa();
+    return;
+}
+
+void listarCursosXPeriodo(){
+    system("clear");
+    printf("\n\nListaCursosXPeriodo()....\n\n");
+    int cantidad = getInfoCursosXPeriodo();
+    printf("  Codigo Curso\tNombre Curso\t\tAño\tPeriodo\tGrupo\tProfesor\tCantidad de estudiantes\n");
+    int i=1;
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        printf("%d.%s\t%s\t%s\t%s\t%s\t%s\t%s\n",i,row[0], row[1], row[2], row[3], row[4], row[5], row[6]);
+        i++;
+    }
+    freeMysql();
+    
+    return;
+}
+void borrarCursosXPeriodo(){
+    system("clear");
+    printf("\n\nBorrarCursoxPeriodo()......");
+    listarCursosXPeriodo();
+    int id;
+    printf("\nDigite el numero del curso por periodo que desea eliminar:\t");
+    scanf("%d", &id);
+
     return;
 }
 

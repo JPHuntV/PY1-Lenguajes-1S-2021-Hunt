@@ -16,13 +16,18 @@ char *password = "JpHv0410";
 char *database = "gestionDeAulas";
 
 
-void getInformacionDeCursos();
+
 
 
 void insertProfesor(struct Profesor *pProfesor);
-void getInfoProfesores();
+int getInfoProfesores();
 void delProfesores();
 
+
+int getInfoCursos();
+
+void insertCursoXPeriodo(struct CursoXPeriodo *pCursoXPeriodo);
+int getInfoCursosXPeriodo();
 void freeMysql();
 
 //estableces conexion
@@ -35,14 +40,16 @@ int conectarServidor(){
     }
 }
 
-void getInformacionDeCursos(){
+int getInfoCursos(){
     char *query = "call getInfoCursos()";
     if(mysql_query(conn, query))
     {
         fprintf(stderr, "%s\n", mysql_error(conn));
     }
-    res = mysql_use_result(conn);
-    return;
+    res = mysql_store_result(conn);
+    
+    
+    return (int)mysql_num_rows(res);
 }
 
 void insertProfesor(struct Profesor *pProfesor){
@@ -64,14 +71,14 @@ void insertProfesor(struct Profesor *pProfesor){
 }
 
 
-void getInfoProfesores(){
+int getInfoProfesores(){
     char *query = "call getInfoProfesores()";
     if(mysql_query(conn, query))
     {
         fprintf(stderr, "%s\n", mysql_error(conn));
     }
-    res = mysql_use_result(conn);
-    return;
+    res = mysql_store_result(conn);
+    return (int)mysql_num_rows(res);;
 }
 
 void delProfesores(){
@@ -84,7 +91,42 @@ void delProfesores(){
     }
     return;
 }
+////////////////////////////////////////
 
+
+///////CursosxPeriodo///////////////////////
+
+
+void insertCursoXPeriodo(struct CursoXPeriodo *pCursoXPeriodo){
+    printf("\n\ninsertCursoXPeriodo().......\n");
+    char query[2000];
+    sprintf(query, "call insertCursoXPeriodo('%s',%d,%d,%d,%s,%d)",
+            pCursoXPeriodo->codigoCurso, pCursoXPeriodo->anio, pCursoXPeriodo->periodo,
+            pCursoXPeriodo->grupo,pCursoXPeriodo->cedProfesor, pCursoXPeriodo->cantidadEstudiantes);
+
+    printf("\nQuery:\t%s\n",query);
+    if(mysql_query(conn, query))
+    {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+    }else{
+        printf("\nEl valor se ha insertado correctamente!\n");
+        res = mysql_use_result(conn);
+    }
+    return;
+}
+
+int getInfoCursosXPeriodo(){
+    char *query = "call getInfoCursosXPeriodo()";
+    if(mysql_query(conn, query))
+    {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+    }
+    res = mysql_store_result(conn);
+    return (int)mysql_num_rows(res);;
+}
+
+
+///////////////////////////////////////////////////////////////
 void freeMysql(){
     printf("\n\nfreeMysql().....\n\n");
     do
