@@ -2,8 +2,8 @@
 #define structs
 
 struct Aula{
-    char nombre[4];
-    int capacidad;
+    char *nombre;
+    char *capacidad;
 };
 
 struct Profesor
