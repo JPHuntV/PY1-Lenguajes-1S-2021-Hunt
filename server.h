@@ -18,7 +18,7 @@ char *database = "gestionDeAulas";
 
 
 
-
+void insertAula(struct Aula *pAula);
 void insertProfesor(struct Profesor *pProfesor);
 int getInfoProfesores();
 void delProfesores();
@@ -28,6 +28,8 @@ int getInfoCursos();
 
 void insertCursoXPeriodo(struct CursoXPeriodo *pCursoXPeriodo);
 int getInfoCursosXPeriodo();
+void delInfoCursosXPeriodo(int id);
+
 void freeMysql();
 
 //estableces conexion
@@ -39,6 +41,25 @@ int conectarServidor(){
         printf("\nconexion establecida \n");
     }
 }
+
+
+void insertAula(struct Aula *pAula){
+
+    printf("Nombre:%s\tcedula:%s", pAula->nombre, pAula->capacidad);
+
+    char query[2000];
+    sprintf(query, "call insertAula('%s',%s)",pAula->nombre, pAula->capacidad);
+    printf("\nQuery:\t%s\n",query);
+    if(mysql_query(conn, query))
+    {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+    }else{
+        printf("\nEl aula se ha insertado correctamente!\n");
+        res = mysql_use_result(conn);
+    }
+    return;
+}
+
 
 int getInfoCursos(){
     char *query = "call getInfoCursos()";
@@ -125,6 +146,18 @@ int getInfoCursosXPeriodo(){
     return (int)mysql_num_rows(res);;
 }
 
+void delInfoCursosXPeriodo(int id){
+    char query[2000];
+    sprintf(query, "call delInfoCursosXPeriodoById(%d)",id);
+    printf("\nQuery:\t%s\n",query);
+    if(mysql_query(conn, query))
+    {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+    }else{
+        printf("\n\nSe ha eliminado el curso por periodo exitosamente\n\n");
+    }
+    return;
+}
 
 ///////////////////////////////////////////////////////////////
 void freeMysql(){

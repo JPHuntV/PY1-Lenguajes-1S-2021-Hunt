@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <ctype.h>
 #include "structs.h"
 #include "server.h"
 
@@ -30,6 +30,7 @@ void informacionDeCursos();
 void leerArchivo();
 void transformarArchivo(FILE *archivo);
 
+bool esNumero(char *token);
 void pausa();
 void salir();
 
@@ -195,15 +196,40 @@ void transformarArchivo(FILE *archivo){
     }
     j = i;
     printf("contenido del archivo\n");
+    struct Aula Aulas[i];
     for(i = 0; i<j; ++i){
-        printf("\n%d",i);
-        printf("%s===>", lineas[i]);
+        char *str = lineas[i];
+        char *token = strtok(str,",");
+        //printf("\nAula:%s\t",str);
+        token = strtok(NULL,",");
+        //printf("capacidad:%s",token);
+
+        if(token != NULL && esNumero(token) ==true){
+            printf("\nesNumero:%s|%s\n", str, token);
+            struct Aula pAula;
+            pAula.nombre = str;
+            pAula.capacidad= token;
+            insertAula(&pAula);
+        }  
     }
     printf("------------------------------------\n");
+   
+    
     return;
 
 }
 
+
+bool esNumero(char *token){
+    printf("\n\nesnumero()......\n");
+    bool res = true;
+
+    for(int i = 0 ; token[i]!='\0';i++){
+        if(!isdigit(token[i])){res = false;}
+    }
+
+    return res;
+}
 ///////////////////////PROFESORES///////////////////////
 void incluirProfesor()
 {
@@ -424,7 +450,9 @@ void borrarCursosXPeriodo(){
     int id;
     printf("\nDigite el numero del curso por periodo que desea eliminar:\t");
     scanf("%d", &id);
-
+    delInfoCursosXPeriodo(id);
+    freeMysql();
+    pausa();
     return;
 }
 
