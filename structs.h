@@ -21,11 +21,11 @@ struct Curso
 
 struct CursoXPeriodo
 {
-    char codigoCurso[6];
-    int anio[4];
-    int periodo[1];
+    char *codigoCurso;
+    int anio;
+    int periodo;
     int grupo;
-    char profesor[50];
+    char *cedProfesor;
     int cantidadEstudiantes;
 };
 
