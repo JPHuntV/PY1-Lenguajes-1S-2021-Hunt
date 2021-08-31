@@ -60,6 +60,11 @@ void topAulas();
 void topProfesores();
 void reservasMesAnio();
 
+
+void opcionesGenerales();
+void consultaDia();
+void consultaAula();
+void consultaCurso();
 void pausa();
 void salir();
 
@@ -126,7 +131,7 @@ void menuPrincipal(){
             break;
     
         case '8':
-            printf("opcion 8\n");
+            opcionesGenerales();
             break;
 
         case '9':
@@ -792,6 +797,148 @@ void reservasMesAnio(){
     return;
 }
 /*******************************************************************************/
+
+
+
+//////////////////////////////////OPCIONES GENERALES////////////////////////////////////
+
+void opcionesGenerales(){
+    system("clear");
+    char opcion;
+    char repetir = 1;
+    do{
+        
+        printf("#####   Opciones Generales  #####\n\n");
+        printf("1.Consultar reservas por dia. \n");
+        printf("2.Consultar reservas por aula. \n");
+        printf("3.Consultar reservas por curso.\n");
+        printf("4.Volver al menú principal\n");
+        printf("5.Salir\n");
+        printf("#############################\n");
+        printf("Seleccione una opcion del 1 al 5:\t");
+
+        scanf(" %c", &opcion);
+        switch (opcion)
+        {
+        case '1':
+            consultaDia();
+            break;
+        
+        case '2':
+            consultaAula();
+            break;
+        
+        case '3':
+            consultaCurso();
+            break;
+        
+        case '4':
+            repetir = 0;
+            break;
+    
+        case '5':
+            salir();
+        
+        default:
+            printf("test\n");
+            break;
+        }
+    }while(repetir);
+    return;
+}
+
+void consultaDia(){
+    system("clear");
+    Date fecha ={0};
+    int fechaValida;
+    printf("\nFecha a consultar (dd/mm/aaaa):\t");
+    scanf("%d/%d/%d",&fecha.dd, &fecha.mm, &fecha.yyyy);
+
+    fechaValida = isValidDate(&fecha);
+    while(fechaValida!=1){
+        while((getchar()!='\n'));
+        printf("\nPor favor ingrese una fecha valida en el formato indicado!\n");
+        printf("\nFecha a consultar(dd/mm/aaaa):\t");
+        scanf("%d/%d/%d",&fecha.dd, &fecha.mm, &fecha.yyyy);
+        fechaValida = isValidDate(&fecha);
+    }
+    char pFecha[10];
+    sprintf(pFecha, "%d-%d-%d", fecha.yyyy, fecha.mm, fecha.dd);
+    int cantidad = getReservasByDia(pFecha);
+    printf("  Aula\tCód reserva\tAño\tPeríodo\tCód curso\tGrupo\tHora inicio\tHora final\n");
+    int i=1;
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        if(row[1]==NULL){
+            printf("%d.%s\tSin reservaciones\n",i, row[0]);
+        }else{
+            printf("%d.%s\t%s\t\t%s\t%s\t%s\t\t%s\t%s\t%s\n",i,row[0], row[1],row[2],row[3],row[4],row[5],row[6],row[7]);
+        }
+        
+        i++;
+    }
+    freeMysql();
+    return;
+}
+
+void consultaAula(){
+    char aula[4];
+    printf("Nombre del aula a consultar:\t");
+    scanf("%s", aula);
+    int cantidad = getReservasByAula(aula);
+    printf("  Cód reserva\tFecha\t\tInicio\t\tFin\t\tAula\tAño\tPeríodo\tCódigo Curso\n");
+    int i=1;
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        if(row[1]==NULL){
+            printf("%d.%s\tSin reservaciones\n",i, row[0]);
+        }else{
+            printf("%d.%s\t\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",i,row[0], row[1],row[2],row[3],row[4],row[5],row[6],row[7]);
+        }
+        
+        i++;
+    }
+    freeMysql();
+    return;
+}
+
+
+void consultaCurso(){
+    int anio;
+    printf("\nAño del curso:");
+    scanf("%d", &anio);
+
+    int periodo;
+    printf("\nPeriodo del curso:");
+    scanf("%d", &periodo);
+
+    char curso[6];
+    printf("Codigo del curso a consultar:\t");
+    scanf("%s", curso);
+
+    int grupo;
+    printf("\nNúmero de grupo:");
+    scanf("%d", &grupo);
+    int cantidad = getReservasByCurso(anio, periodo, curso, grupo);
+    printf("  Cód reserva\tFecha\t\tInicio\t\tFin\t\tAula\n");
+    int i=1;
+    if(cantidad ==0){
+        printf("\nEste curso no existe o no tiene reservaciones.\n");
+    }
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        if(row[1]==NULL){
+            printf("%d.%s\tSin reservaciones\n",i, row[0]);
+        }else{
+            printf("%d.%s\t\t%s\t%s\t%s\t%s\n",i,row[0], row[1],row[2],row[3],row[4]);
+        }
+        
+        i++;
+    }
+    freeMysql();
+    return;
+}
+/*******************************************************************/
 void pausa(){
     getchar();
     printf("\n\nPresione enter para continuar....");

@@ -41,6 +41,10 @@ void delReserva();
 int getTopAulas();
 int getTopProfesores();
 int getReservasMesAnio();
+
+int getReservasByDia(char *pFecha);
+int getReservasByAula(char *pAula);
+int getReservasByCurso(int anio, int periodo, char *pCurso, int grupo);
 void freeMysql();
 
 //estableces conexion
@@ -273,6 +277,45 @@ int getTopProfesores(){
 
 int getReservasMesAnio(){
     char *query = "call reservasMesAnio();";
+    if(mysql_query(conn, query))
+    {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+    }else{
+        res = mysql_store_result(conn);
+    }
+    return (int)mysql_num_rows(res);;
+}
+/*************************************************************/
+int getReservasByDia(char *pFecha){
+    char query[2000];
+    sprintf(query, "call getReservasByDia('%s')",pFecha);
+    printf("\nQuery:\t%s\n",query);
+    if(mysql_query(conn, query))
+    {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+    }else{
+        res = mysql_store_result(conn);
+    }
+    return (int)mysql_num_rows(res);;
+}
+
+int getReservasByAula(char *pAula){
+    char query[2000];
+    sprintf(query, "call getReservasByAula('%s')",pAula);
+    printf("\nQuery:\t%s\n",query);
+    if(mysql_query(conn, query))
+    {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+    }else{
+        res = mysql_store_result(conn);
+    }
+    return (int)mysql_num_rows(res);;
+}
+
+int getReservasByCurso(int anio, int periodo, char *pCurso, int grupo){
+    char query[2000];
+    sprintf(query, "call getReservasByCurso(%d,%d,'%s',%d)",anio, periodo, pCurso, grupo);
+    printf("\nQuery:\t%s\n",query);
     if(mysql_query(conn, query))
     {
         fprintf(stderr, "%s\n", mysql_error(conn));
