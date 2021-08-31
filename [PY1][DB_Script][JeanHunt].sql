@@ -44,6 +44,20 @@ CREATE TABLE `CursosXPeriodo` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
+CREATE TABLE `Reservas` (
+  `codigoReserva` int NOT NULL AUTO_INCREMENT,
+  `fecha` date NOT NULL,
+  `horaInicio` time NOT NULL,
+  `horaFin` time NOT NULL,
+  `nombreAula` varchar(4) NOT NULL,
+  `anio` int NOT NULL,
+  `periodo` int NOT NULL,
+  `codigoCurso` varchar(6) NOT NULL,
+  `grupo` int NOT NULL,
+  PRIMARY KEY (`codigoReserva`),
+  UNIQUE KEY `codigoReserva_UNIQUE` (`codigoReserva`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 
 
@@ -126,6 +140,8 @@ END$$
 
 DELIMITER ;
 
+
+
 DROP procedure IF EXISTS `insertCursoXPeriodo`;
 
 DELIMITER $$
@@ -154,6 +170,23 @@ END$$
 
 DELIMITER ;
 
+
+DROP procedure IF EXISTS `getInfoCursosXPeriodoByAnio`;
+
+DELIMITER $$
+USE `gestionDeAulas`$$
+CREATE PROCEDURE `getInfoCursosXPeriodoByAnio` (in pAnio int, in pPeriodo int)
+BEGIN
+	select cp.codigoCurso,c.nombre, cp.anio, cp.periodo, cp.grupo, p.nombre, cp.cantidadEstudiantes
+    from CursosXPeriodo cp
+    inner join Cursos c on c.codigoCurso = cp.codigoCurso
+    inner join Profesor p on p.cedula = cp.cedulaProfesor
+    where cp.anio = pAnio and cp.periodo = pPeriodo;
+END$$
+
+DELIMITER ;
+
+
 DROP procedure IF EXISTS `delInfoCursosXPeriodoById`;
 
 DELIMITER $$
@@ -167,6 +200,64 @@ END$$
 DELIMITER ;
 
 
-select * from Aulas
+DROP procedure IF EXISTS `getAulasAforo`;
+
+DELIMITER $$
+USE `gestionDeAulas`$$
+CREATE PROCEDURE `getAulasAforo` (in pFecha Date, in pInicio Time, in pFin Time, in pCantidadEstudiantes int )
+BEGIN
+	select * from Aulas
+    where nombre not in
+    (
+	select a.nombre
+    from Aulas a
+    inner join Reservas r on a.nombre = r.nombreAula
+    where r.fecha = pFecha and (r.horaInicio between pInicio and pFin
+    or r.horaFin between pInicio and pFin)
+    )
+    and capacidad>= pCantidadEstudiantes;
+END$$
+
+DELIMITER ;
 
 
+
+DROP procedure IF EXISTS `insertReserva`;
+
+DELIMITER $$
+USE `gestionDeAulas`$$
+CREATE PROCEDURE `insertReserva` (in pFecha date, in pHorainicio Time, in pHoraFin Time, in pNombreAula varchar(4),
+					in pAnio int, in pPeriodo int, in pCodigoCurso varchar(6), in pGrupo int)
+BEGIN
+	insert into Reservas (fecha, horaInicio, horaFin, nombreAula, anio, periodo, codigoCurso, grupo)
+		values(pFecha, pHoraInicio, pHoraFin, pNombreAula, pAnio, pPeriodo, pCodigoCurso, pGrupo);
+	
+    select * from Reservas order by codigoReserva DESC limit 1;
+END$$
+
+DELIMITER ;
+
+DROP procedure IF EXISTS `getReserva`;
+
+DELIMITER $$
+USE `gestionDeAulas`$$
+CREATE PROCEDURE `getReserva` (in pCodigoReserva int)
+BEGIN
+	select * from Reservas
+    where codigoReserva = pCodigoReserva;
+END$$
+
+DELIMITER ;
+
+
+DROP procedure IF EXISTS `deleteReserva`;
+
+DELIMITER $$
+USE `gestionDeAulas`$$
+CREATE PROCEDURE `deleteReserva` (in pCodigoReserva int)
+BEGIN
+	delete from Reservas
+    where codigoReserva = pCodigoReserva;
+END$$
+
+DELIMITER ;
