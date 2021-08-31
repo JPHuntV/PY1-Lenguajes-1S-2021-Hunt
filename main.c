@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 #include "structs.h"
 #include "server.h"
 
@@ -11,6 +12,20 @@
 
 #define LSIZ 128
 #define RSIZ 10
+#define MAX_YR 2222
+#define MIN_YR 2021
+
+
+typedef struct{
+    int yyyy;
+    int mm;
+    int dd;
+} Date;
+
+typedef struct{
+    int MM;
+    int HH;
+} Time;
 
 void menuPrincipal();
 
@@ -30,7 +45,14 @@ void informacionDeCursos();
 void leerArchivo();
 void transformarArchivo(FILE *archivo);
 
+void reservarAula();
+void cancelarReservacion();
+
 bool esNumero(char *token);
+int IsLeapYear(int year);
+int isValidDate(Date *validDate);
+int validarHora(Time *pHora);
+int validarHoraInicioFin(Time *pInicio, Time *pFin);
 void pausa();
 void salir();
 
@@ -84,11 +106,11 @@ void menuPrincipal(){
             break;
         
         case '5':
-            printf("opcion 5\n");
+            reservarAula();
             break;
         
         case '6':
-            printf("opcion 6\n");
+            cancelarReservacion();
             break;
         
         case '7':
@@ -455,8 +477,210 @@ void borrarCursosXPeriodo(){
     pausa();
     return;
 }
+///////////////////////////////////////////////////////////////////////////////////
 
 
+
+
+///////Reservaciones////////////////////////////
+
+
+void reservarAula(){
+    printf("\n\nReservarAula().....\n");
+
+    struct Reserva pReserva;
+    Date fecha ={0};
+    int fechaValida;
+    printf("\nFecha de inicio (dd/mm/aaaa):\t");
+    scanf("%d/%d/%d",&fecha.dd, &fecha.mm, &fecha.yyyy);
+
+    fechaValida = isValidDate(&fecha);
+    while(fechaValida!=1){
+        while((getchar()!='\n'));
+        printf("\nPor favor ingrese una fecha valida en el formato indicado!\n");
+        printf("\nFecha de inicio (dd/mm/aaaa):\t");
+        scanf("%d/%d/%d",&fecha.dd, &fecha.mm, &fecha.yyyy);
+        fechaValida = isValidDate(&fecha);
+    }
+    Time horaInicio = {0};
+    int horaValida;
+    printf("\nHora de inicio (HH:MM):\t");
+    scanf("%d:%d",&horaInicio.HH, &horaInicio.MM);
+    printf("\nHora:%d:%d", horaInicio.HH, horaInicio.MM);
+    horaValida = validarHora(&horaInicio);
+    while(horaValida!=1){
+        while((getchar()!='\n'));
+        printf("\nPor favor ingrese una hora valida en el formato indicado!\n");
+        printf("\nHora de inicio (HH:MM):\t");
+        scanf("%d:%d",&horaInicio.HH, &horaInicio.MM);
+        horaValida = validarHora(&horaInicio);
+    }
+
+    Time horaFin = {0};
+    printf("\nHora de salida (HH:MM):\t");
+    scanf("%d:%d",&horaFin.HH, &horaFin.MM);
+    printf("\nHora:%d:%d", horaFin.HH, horaFin.MM);
+    horaValida = validarHora(&horaFin);
+    while(horaValida!=1 && validarHoraInicioFin(&horaInicio, &horaFin)!=1){
+        while((getchar()!='\n'));
+        printf("\nPor favor ingrese una hora valida en el formato indicado!\n");
+        printf("\nHora de salida (HH:MM):\t");
+        scanf("%d:%d",&horaFin.HH, &horaFin.MM);
+        horaValida = validarHora(&horaFin);
+    }
+    while((getchar()!='\n'));
+   
+
+    sprintf(pReserva.fecha, "%d-%d-%d", fecha.yyyy, fecha.mm, fecha.dd);
+    //pReserva.fecha =itoa(fecha.yyyy)+'-'+itoa(fecha.mm)+'-'+itoa(fecha.dd);
+    sprintf(pReserva.horaInicio, "%d:%d:00", horaInicio.HH, horaInicio.MM);
+    //pReserva.horaInicio = itoa(horaInicio.HH)+':'+itoa(horaInicio.MM)+':00';
+    sprintf(pReserva.horaFinal, "%d:%d:00", horaFin.HH, horaFin.MM);
+    //pReserva.horaFinal = itoa(horaFin.HH)+':'+itoa(horaFin.MM)+':00';
+    //año sale del struct, dato repetido pero solicitado
+
+
+    printf("\nPeriodo (1 ó 2):\t");
+    scanf("%d",&pReserva.periodo);
+
+    
+    int cantidadCursos = getInfoCursosXPeriodoByAnio(fecha.yyyy, pReserva.periodo);
+    char* cursos[cantidadCursos];
+    char* grupos[cantidadCursos];
+    char* cantEstudiantes[cantidadCursos];
+    if(cantidadCursos == 0){
+        printf("\n\nAun no existen cursos registrados en el periodo indicado.\nRegistre un curso en intente de nuevo\n");
+        freeMysql();
+        return;
+    }
+    int i=0;
+    printf("\n  Codigo Curso\tNombre Curso\tAño\tPeriodo\tGrupo\tProfesor\t\tCantidad de estudiantes\n");
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        
+        printf("%d.%s\t%s\t%s\t%s\t%s\t%s\t%s\n",i,row[0], row[1], row[2], row[3], row[4], row[5], row[6]);
+        cursos[i] = row[0];
+        grupos[i] = row[4];
+        cantEstudiantes[i]= row[6];
+        i++;
+    }
+    freeMysql();
+    int numCurso;
+    printf("\nDigite el numero de curso que quiere asociar:\t");
+    scanf("%d", &numCurso);
+    pReserva.codigoCurso=cursos[numCurso];
+    long test;
+    char *temp;
+    pReserva.grupo = strtol(grupos[numCurso], &temp,10);
+    char* cantidadEstudiantes=cantEstudiantes[numCurso];
+    int cantidadAulas = getInfoAulas(&pReserva, cantidadEstudiantes);
+    if(cantidadAulas ==0){
+        printf("\nNo existen aulas disponibles para el curso y fecha indicados.\n");
+        freeMysql();
+        return;
+    }
+    printf("Las siguientes aulas se encuentran disponibles:\n\n\tAula\t\tCapacidad\n");
+    char *aulas[cantidadAulas];
+    i=0;
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        printf("%d.\t%s\t%s\t\t\n",i,row[0], row[1]);
+        aulas[i] = row[0];
+        i++;
+    }
+
+    int numAula;
+    printf("\nDigite el numero aula que quiere reservar:\t");
+    scanf("%d", &numAula);
+    pReserva.nombreAula=aulas[numAula];
+    pReserva.anio = fecha.yyyy;
+    freeMysql();
+    
+    printf("\nFecha:%s",pReserva.fecha);
+    printf("\nHora inicio:%s", pReserva.horaInicio);
+    printf("\nHora fin:%s\n", pReserva.horaFinal);
+    printf("\nperiodo:%d\n", pReserva.periodo);
+    printf("\nCodigo curso:%s\n", pReserva.codigoCurso);
+    printf("\nGrupo:%d\n", pReserva.grupo);
+    printf("\nCantidad de estudiantes:%s\n", cantidadEstudiantes);
+    printf("\nAula:%s\n", pReserva.nombreAula);
+
+    insertReserva(&pReserva);
+    printf("El numero de reservación es:\t");
+    i=0;
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        printf("%s",row[0]);
+        i++;
+    }
+    freeMysql();
+    pausa();
+    return;
+    
+}
+
+
+void cancelarReservacion(){
+    freeMysql();
+    printf("\n\ncancelarReservacion()....\n");
+    printf("Digite el codigo de la reservación que desea cancelar:\t");
+    int codigo;
+    scanf("%d", &codigo);
+    
+    if(getReserva(codigo) == 1){
+        freeMysql();
+        delReserva(codigo);
+        printf("\n\nSu reservación ha sido cancelada\n");
+        pausa();
+    }else{
+        printf("\nNo existe ninguna reserva con el codigo indicado\n");
+        freeMysql();
+        pausa();
+
+        return;
+    }
+    freeMysql();
+    return;
+}
+
+
+
+/********************************************
+ * fuente:aticleworld.com/check-valid-date/
+ * *****************************************/
+int IsLeapYear(int year){
+    return(((year % 4 == 0) && (year % 100 != 0)) || (year %400 == 0));
+}
+
+int isValidDate(Date *validDate){
+    if(validDate->yyyy > MAX_YR || validDate->yyyy <MIN_YR) return 0;
+    if(validDate->mm <1 || validDate->mm >12) return 0;
+    if(validDate->dd <1 || validDate->dd > 31) return 0;
+
+    if(validDate->mm ==2){
+        if(IsLeapYear(validDate->yyyy)) return(validDate->dd <=29);
+        else return (validDate->dd <= 28);
+    }
+
+    if(validDate->mm ==4 || validDate ->mm ==6 || validDate->mm ==9 || validDate->mm ==11)
+        return(validDate->dd <=30);
+    return 1;
+}
+/*********************************************************************************************/
+
+
+int validarHora(Time *pHora){
+    if(pHora->HH>24 || pHora->HH < 0) return 0;
+    if(pHora->MM>59 || pHora->MM < 0) return 0;
+    return 1;
+}
+
+
+int validarHoraInicioFin(Time *pInicio, Time *pFin){
+    if(pInicio->HH>pFin->HH) return 0;
+    if(pInicio->HH==pFin->HH && pInicio->MM>pFin->MM) return 0;
+    return 1;
+}
 void pausa(){
     getchar();
     printf("\n\nPresione enter para continuar....");
