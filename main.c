@@ -53,6 +53,13 @@ int IsLeapYear(int year);
 int isValidDate(Date *validDate);
 int validarHora(Time *pHora);
 int validarHoraInicioFin(Time *pInicio, Time *pFin);
+
+
+void menuEstadisticas();
+void topAulas();
+void topProfesores();
+void reservasMesAnio();
+
 void pausa();
 void salir();
 
@@ -78,9 +85,10 @@ void menuPrincipal(){
         printf("5.Reservación de aula \n");
         printf("6.Cancelar reservación. \n");
         printf("7.Estadisticas. \n");
-        printf("8.Salir.\n");
+        printf("8.Opciones generales.\n");
+        printf("9.Salir.\n");
         printf("#############################\n");
-        printf("Seleccione una opcion del 1 al 8:\t");
+        printf("Seleccione una opcion del 1 al 9:\t");
 
         scanf(" %c", &opcion);
         switch (opcion)
@@ -114,10 +122,14 @@ void menuPrincipal(){
             break;
         
         case '7':
-            printf("opcion 7\n");
+            menuEstadisticas();
             break;
     
         case '8':
+            printf("opcion 8\n");
+            break;
+
+        case '9':
             repetir = 0;
             break;
         
@@ -681,6 +693,105 @@ int validarHoraInicioFin(Time *pInicio, Time *pFin){
     if(pInicio->HH==pFin->HH && pInicio->MM>pFin->MM) return 0;
     return 1;
 }
+
+/****************************************************************************************************/
+
+
+
+///////////////////////////////Estadisticas////////////////////////////////////////////////////
+
+void menuEstadisticas(){
+    system("clear");
+    printf("\n\nmenuEstadisticas()....\n\n");
+    char opcion;
+    char repetir = 1;
+    do{
+        
+        printf("#####   Estadísticas  #####\n\n");
+        printf("1.Top 3 aulas más reservadas. \n");
+        printf("2.Top 3 profesores con más reservas. \n");
+        printf("3.Cantidad de reservaciones por año-mes\n");
+        printf("4.Volver al menú principal\n");
+        printf("5.Salir\n");
+        printf("#############################\n");
+        printf("Seleccione una opcion del 1 al 5:\t");
+
+        scanf(" %c", &opcion);
+        switch (opcion)
+        {
+        case '1':
+            topAulas();
+            break;
+        
+        case '2':
+            topProfesores();
+            break;
+        
+        case '3':
+            reservasMesAnio();
+            break;
+        
+        case '4':
+            repetir = 0;
+            break;
+    
+        case '5':
+            salir();
+        
+        default:
+            printf("test\n");
+            break;
+        }
+    }while(repetir);
+    return;
+}
+
+
+void topAulas(){
+    system("clear");
+    int cantidad = getTopAulas();
+    printf("  Aula\tCantidad de reservaciones\n");
+    int i=1;
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        printf("%d.%s\t%s\n",i,row[0], row[1]);
+        i++;
+    }
+    freeMysql();
+    
+    return;
+}
+
+void topProfesores(){
+    system("clear");
+    int cantidad = getTopProfesores();
+    printf("  Profesor\tCantidad de reservaciones\n");
+    int i=1;
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        printf("%d.%s\t%s\n",i,row[0], row[1]);
+        i++;
+    }
+    freeMysql();
+    
+    return;
+}
+
+void reservasMesAnio(){
+    system("clear");
+    int cantidad = getReservasMesAnio();
+    printf("  Mes\tAño\tCantidad de reservaciones\n");
+    int i=1;
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+        printf("%d.%s\t%s\t%s\n",i,row[0], row[1],row[2]);
+        i++;
+    }
+    freeMysql();
+    
+    return;
+}
+/*******************************************************************************/
 void pausa(){
     getchar();
     printf("\n\nPresione enter para continuar....");

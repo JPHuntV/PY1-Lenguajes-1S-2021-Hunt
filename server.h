@@ -36,6 +36,11 @@ int getInfoAulas(struct Reserva *pReserva, char* cantidadEstudiantes);
 void insertReserva(struct Reserva *pReserva);
 int getReserva(int codigo);
 void delReserva();
+
+
+int getTopAulas();
+int getTopProfesores();
+int getReservasMesAnio();
 void freeMysql();
 
 //estableces conexion
@@ -243,7 +248,39 @@ void delReserva(int id){
     }
     return ;
 }
+/**********************************************************/
+int getTopAulas(){
+    char *query = "call topAulas();";
+    if(mysql_query(conn, query))
+    {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+    }else{
+        res = mysql_store_result(conn);
+    }
+    return (int)mysql_num_rows(res);;
+}
 
+int getTopProfesores(){
+    char *query = "call topProfesores();";
+    if(mysql_query(conn, query))
+    {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+    }else{
+        res = mysql_store_result(conn);
+    }
+    return (int)mysql_num_rows(res);;
+}
+
+int getReservasMesAnio(){
+    char *query = "call reservasMesAnio();";
+    if(mysql_query(conn, query))
+    {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+    }else{
+        res = mysql_store_result(conn);
+    }
+    return (int)mysql_num_rows(res);;
+}
 /////////////////////
 void freeMysql(){
     printf("\n\nfreeMysql().....\n\n");
