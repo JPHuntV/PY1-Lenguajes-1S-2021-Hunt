@@ -71,6 +71,7 @@ void salir();
 
 
 int main(){
+    system("clear");
     conectarServidor();
     menuPrincipal();
     return 0;
@@ -82,7 +83,7 @@ void menuPrincipal(){
     char repetir = 1;
     do{
         
-        printf("_____ Menú principal _____ \n\n");
+        printf("\n#####  Menú principal  #####\n\n");
         printf("1.Información de aulas. \n");
         printf("2.Información de profesores. \n");
         printf("3.Información de cursos. \n");
@@ -99,18 +100,14 @@ void menuPrincipal(){
         switch (opcion)
         {
         case '1':
-            
-            printf("opcion 1\n");
             leerArchivo();
             break;
         
         case '2':
-            printf("\n======\nopcion 2\n");
             menuProfesores();
             break;
         
         case '3':
-            printf("\n======\nopcion 3\n");
             informacionDeCursos();
             break;
         
@@ -139,7 +136,6 @@ void menuPrincipal(){
             break;
         
         default:
-            printf("test\n");
             break;
         }
     }while(repetir);
@@ -150,10 +146,83 @@ void menuPrincipal(){
     return;
 }
 
+void leerArchivo(){
 
+    FILE *archivo;
+    int tamanio;
+    int cantidadLineas = 0;
+    char ultimoCaracter;
+    char ruta[200];
+    printf("\nPorfavor indique la ruta del archivo:");
+    scanf("%s",ruta);
+    archivo = fopen(ruta, "r+");
+    while((getchar()!='\n'));
+    if(archivo == NULL){
+        printf("\n\nLa ruta indicada no existe o no está disponible.\n");
+        return;
+    }
+    else{
+        fseek(archivo, 0L, SEEK_END);
+        tamanio = ftell(archivo);
+        fseek(archivo, tamanio-1, SEEK_SET);
+        
+        ultimoCaracter = fgetc(archivo);
+        
+        if(ultimoCaracter!='\n') fputc('\n', archivo);
+
+        fseek(archivo, 0L, SEEK_SET); 
+
+        transformarArchivo(archivo);
+    }
+    fclose(archivo);
+    
+    return;    
+}
+
+void transformarArchivo(FILE *archivo){
+    char lineas[RSIZ][LSIZ];
+    int i = 0;
+    int j = 0;
+    
+    while(fgets(lineas[i], LSIZ, archivo)){
+        lineas[i][strlen(lineas[i])-1]='\0';
+        i++;
+    }
+    j = i;
+    printf("\nSe incluiran las siguientes aulas\n");
+    struct Aula Aulas[i];
+    for(i = 0; i<j; ++i){
+        char *str = lineas[i];
+        char *token = strtok(str,",");
+        token = strtok(NULL,",");
+
+        if(token != NULL && esNumero(token) ==true){
+            struct Aula pAula;
+            pAula.nombre = str;
+            pAula.capacidad= token;
+            printf("\nAula:%s\tCapacidad:%s", pAula.nombre, pAula.capacidad);
+            insertAula(&pAula);
+        }  
+    }
+    printf("------------------------------------\n");
+    pausa();
+
+    return;
+
+}
+
+
+bool esNumero(char *token){
+    bool res = true;
+    for(int i = 0 ; token[i]!='\0';i++){
+        if(!isdigit(token[i])){res = false;}
+    }
+
+    return res;
+}
+///////////////////////PROFESORES///////////////////////
 void menuProfesores(){
     system("clear");
-    printf("\n\nmenuProfesores()....\n\n");
     char opcion;
     char repetir = 1;
     do{
@@ -190,96 +259,21 @@ void menuProfesores(){
             salir();
         
         default:
-            printf("test\n");
             break;
         }
     }while(repetir);
     return;
 }
-void leerArchivo(){
 
-    FILE *archivo;
-    int tamanio;
-    int cantidadLineas = 0;
-    char ultimoCaracter;
-    
-    archivo = fopen("test.txt", "r+");
-    
-    if(archivo == NULL) exit(1);
-    else{
-        fseek(archivo, 0L, SEEK_END);
-        tamanio = ftell(archivo);
-        fseek(archivo, tamanio-1, SEEK_SET);
-        
-        ultimoCaracter = fgetc(archivo);
-        
-        if(ultimoCaracter!='\n') fputc('\n', archivo);
-
-        fseek(archivo, 0L, SEEK_SET); 
-
-        transformarArchivo(archivo);
-    }
-    fclose(archivo);
-    
-    return;    
-}
-
-void transformarArchivo(FILE *archivo){
-    char lineas[RSIZ][LSIZ];
-    int i = 0;
-    int j = 0;
-    
-    while(fgets(lineas[i], LSIZ, archivo)){
-        lineas[i][strlen(lineas[i])-1]='\0';
-        i++;
-    }
-    j = i;
-    printf("contenido del archivo\n");
-    struct Aula Aulas[i];
-    for(i = 0; i<j; ++i){
-        char *str = lineas[i];
-        char *token = strtok(str,",");
-        //printf("\nAula:%s\t",str);
-        token = strtok(NULL,",");
-        //printf("capacidad:%s",token);
-
-        if(token != NULL && esNumero(token) ==true){
-            printf("\nesNumero:%s|%s\n", str, token);
-            struct Aula pAula;
-            pAula.nombre = str;
-            pAula.capacidad= token;
-            insertAula(&pAula);
-        }  
-    }
-    printf("------------------------------------\n");
-   
-    
-    return;
-
-}
-
-
-bool esNumero(char *token){
-    printf("\n\nesnumero()......\n");
-    bool res = true;
-
-    for(int i = 0 ; token[i]!='\0';i++){
-        if(!isdigit(token[i])){res = false;}
-    }
-
-    return res;
-}
-///////////////////////PROFESORES///////////////////////
 void incluirProfesor()
 {
     system("clear");
-    printf("\n\nincluirProfesor().......\n\n\n");
     struct Profesor pProfesor;
 
     printf("\nIngrese el número de cédula del profesor:\t");
     while(scanf("%d", &pProfesor.cedula)!=1){
         while((getchar()!='\n'));
-        printf("El valor ingresado es incorrecto\nPor favor intentelo de nuevo\n");
+        printf("\nEl valor ingresado es incorrecto\nPor favor intentelo de nuevo\n");
         printf("\nIngrese el número de cédula del profesor:\t");
     }
 
@@ -287,7 +281,6 @@ void incluirProfesor()
     scanf(" %[^\n]", pProfesor.nombre);
 
     insertProfesor(&pProfesor);
-    getchar();
     pausa();
     freeMysql();
     return;
@@ -296,7 +289,6 @@ void incluirProfesor()
 
 void listarProfesores(){
     system("clear");
-    printf("\n\ninformacionDeProfesores()....\n\n");
     getInfoProfesores();
 
     printf("\tCédula\t\tNombre\n");
@@ -314,7 +306,6 @@ void listarProfesores(){
 
 void borrarProfesores(){
     system("clear");
-    printf("\n\nborrarProfesores()....\n\n");
     delProfesores();
     freeMysql();
     pausa();
@@ -326,7 +317,6 @@ void borrarProfesores(){
 
 void informacionDeCursos(){
     system("clear");
-    printf("\n\ninformacionDeCursos()....\n\n");
     getInfoCursos();
     printf("\tID Curso\tID Carrera\tNombre\n");
     int i=0;
@@ -343,7 +333,6 @@ void informacionDeCursos(){
 
 void menuCursosXPeriodo(){
     system("clear");
-    printf("\n\nmenuCursosXPeriodo()....\n\n");
     char opcion;
     char repetir = 1;
     do{
@@ -381,7 +370,6 @@ void menuCursosXPeriodo(){
             salir();
         
         default:
-            printf("test\n");
             break;
         }
     }while(repetir);
@@ -390,9 +378,7 @@ void menuCursosXPeriodo(){
 
 void incluirCursosXPeriodo(){
     system("clear");
-    printf("\n\nIncluirCursosXPeriodo()...... \n");
     int cantidadCursos = getInfoCursos();
-    //printf("Cantidad:%d\n", cantidadCursos);//
     struct CursoXPeriodo pCursoXPeriodo;
     char* cursos[cantidadCursos];
 
@@ -412,21 +398,17 @@ void incluirCursosXPeriodo(){
     printf("\nDigite el numero de curso que quiere asociar:\t");
     scanf("%d", &numCurso);
     pCursoXPeriodo.codigoCurso=cursos[numCurso];
-    //printf("elemento\n%s",pCursoXPeriodo.codigoCurso);
 
     freeMysql();
 
     printf("\nDigite el año en el que se va a cursar:\t");
     scanf("%d", &pCursoXPeriodo.anio);
-   // printf("Año%d\n",pCursoXPeriodo.anio);
 
     printf("\nDigite el periodo en el que se va a cursar:\t");
     scanf("%d", &pCursoXPeriodo.periodo);
-//    printf("Año%d\n",pCursoXPeriodo.periodo);
 
     printf("\nDigite el numero del grupo:\t");
     scanf("%d", &pCursoXPeriodo.grupo);
-   // printf("Año%d\n",pCursoXPeriodo.grupo);
 
     int cantidadProfesores = getInfoProfesores();
     if(cantidadProfesores ==0){
@@ -448,15 +430,12 @@ void incluirCursosXPeriodo(){
     printf("\nDigite el numero del profresor que quiere asociar:\t");
     scanf("%d", &numProf);
     pCursoXPeriodo.cedProfesor=profesores[numProf];
-    //printf("profe\n%s",pCursoXPeriodo.cedProfesor);
 
     freeMysql();
 
     printf("\nDigite la cantidad de estudiantes que admitirá el curso:\t");
     scanf("%d", &pCursoXPeriodo.cantidadEstudiantes);
-    //printf("CantEstudiantes:%d\n",pCursoXPeriodo.cantidadEstudiantes);
     
-
     printf("\nStruct:\nCodigoCurso:%s\tAño:%d\tPeriodo:%d\tGrupo:\t%dProfesor:%s\tCantidad:%d\n", 
         pCursoXPeriodo.codigoCurso, pCursoXPeriodo.anio, pCursoXPeriodo.periodo, pCursoXPeriodo.grupo, 
         pCursoXPeriodo.cedProfesor, pCursoXPeriodo.cantidadEstudiantes);
@@ -469,7 +448,6 @@ void incluirCursosXPeriodo(){
 
 void listarCursosXPeriodo(){
     system("clear");
-    printf("\n\nListaCursosXPeriodo()....\n\n");
     int cantidad = getInfoCursosXPeriodo();
     printf("  Codigo Curso\tNombre Curso\t\tAño\tPeriodo\tGrupo\tProfesor\tCantidad de estudiantes\n");
     int i=1;
@@ -479,12 +457,10 @@ void listarCursosXPeriodo(){
         i++;
     }
     freeMysql();
-    
     return;
 }
 void borrarCursosXPeriodo(){
     system("clear");
-    printf("\n\nBorrarCursoxPeriodo()......");
     listarCursosXPeriodo();
     int id;
     printf("\nDigite el numero del curso por periodo que desea eliminar:\t");
@@ -503,8 +479,7 @@ void borrarCursosXPeriodo(){
 
 
 void reservarAula(){
-    printf("\n\nReservarAula().....\n");
-
+    system("clear");
     struct Reserva pReserva;
     Date fecha ={0};
     int fechaValida;
@@ -523,7 +498,6 @@ void reservarAula(){
     int horaValida;
     printf("\nHora de inicio (HH:MM):\t");
     scanf("%d:%d",&horaInicio.HH, &horaInicio.MM);
-    printf("\nHora:%d:%d", horaInicio.HH, horaInicio.MM);
     horaValida = validarHora(&horaInicio);
     while(horaValida!=1){
         while((getchar()!='\n'));
@@ -536,7 +510,6 @@ void reservarAula(){
     Time horaFin = {0};
     printf("\nHora de salida (HH:MM):\t");
     scanf("%d:%d",&horaFin.HH, &horaFin.MM);
-    printf("\nHora:%d:%d", horaFin.HH, horaFin.MM);
     horaValida = validarHora(&horaFin);
     while(horaValida!=1 && validarHoraInicioFin(&horaInicio, &horaFin)!=1){
         while((getchar()!='\n'));
@@ -549,13 +522,9 @@ void reservarAula(){
    
 
     sprintf(pReserva.fecha, "%d-%d-%d", fecha.yyyy, fecha.mm, fecha.dd);
-    //pReserva.fecha =itoa(fecha.yyyy)+'-'+itoa(fecha.mm)+'-'+itoa(fecha.dd);
     sprintf(pReserva.horaInicio, "%d:%d:00", horaInicio.HH, horaInicio.MM);
-    //pReserva.horaInicio = itoa(horaInicio.HH)+':'+itoa(horaInicio.MM)+':00';
     sprintf(pReserva.horaFinal, "%d:%d:00", horaFin.HH, horaFin.MM);
-    //pReserva.horaFinal = itoa(horaFin.HH)+':'+itoa(horaFin.MM)+':00';
     //año sale del struct, dato repetido pero solicitado
-
 
     printf("\nPeriodo (1 ó 2):\t");
     scanf("%d",&pReserva.periodo);
@@ -574,7 +543,6 @@ void reservarAula(){
     printf("\n  Codigo Curso\tNombre Curso\tAño\tPeriodo\tGrupo\tProfesor\t\tCantidad de estudiantes\n");
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-        
         printf("%d.%s\t%s\t%s\t%s\t%s\t%s\t%s\n",i,row[0], row[1], row[2], row[3], row[4], row[5], row[6]);
         cursos[i] = row[0];
         grupos[i] = row[4];
@@ -596,7 +564,7 @@ void reservarAula(){
         freeMysql();
         return;
     }
-    printf("Las siguientes aulas se encuentran disponibles:\n\n\tAula\t\tCapacidad\n");
+    printf("\nLas siguientes aulas se encuentran disponibles:\n\n\tAula\t\tCapacidad\n");
     char *aulas[cantidadAulas];
     i=0;
     while ((row = mysql_fetch_row(res)) != NULL)
@@ -612,15 +580,6 @@ void reservarAula(){
     pReserva.nombreAula=aulas[numAula];
     pReserva.anio = fecha.yyyy;
     freeMysql();
-    
-    printf("\nFecha:%s",pReserva.fecha);
-    printf("\nHora inicio:%s", pReserva.horaInicio);
-    printf("\nHora fin:%s\n", pReserva.horaFinal);
-    printf("\nperiodo:%d\n", pReserva.periodo);
-    printf("\nCodigo curso:%s\n", pReserva.codigoCurso);
-    printf("\nGrupo:%d\n", pReserva.grupo);
-    printf("\nCantidad de estudiantes:%s\n", cantidadEstudiantes);
-    printf("\nAula:%s\n", pReserva.nombreAula);
 
     insertReserva(&pReserva);
     printf("El numero de reservación es:\t");
@@ -638,8 +597,8 @@ void reservarAula(){
 
 
 void cancelarReservacion(){
+    system("clear");
     freeMysql();
-    printf("\n\ncancelarReservacion()....\n");
     printf("Digite el codigo de la reservación que desea cancelar:\t");
     int codigo;
     scanf("%d", &codigo);
@@ -653,7 +612,6 @@ void cancelarReservacion(){
         printf("\nNo existe ninguna reserva con el codigo indicado\n");
         freeMysql();
         pausa();
-
         return;
     }
     freeMysql();
@@ -707,7 +665,6 @@ int validarHoraInicioFin(Time *pInicio, Time *pFin){
 
 void menuEstadisticas(){
     system("clear");
-    printf("\n\nmenuEstadisticas()....\n\n");
     char opcion;
     char repetir = 1;
     do{
@@ -744,7 +701,6 @@ void menuEstadisticas(){
             salir();
         
         default:
-            printf("test\n");
             break;
         }
     }while(repetir);
@@ -840,7 +796,6 @@ void opcionesGenerales(){
             salir();
         
         default:
-            printf("test\n");
             break;
         }
     }while(repetir);
@@ -882,6 +837,7 @@ void consultaDia(){
 }
 
 void consultaAula(){
+    system("clear");
     char aula[4];
     printf("Nombre del aula a consultar:\t");
     scanf("%s", aula);
@@ -904,6 +860,7 @@ void consultaAula(){
 
 
 void consultaCurso(){
+    system("clear");
     int anio;
     printf("\nAño del curso:");
     scanf("%d", &anio);
@@ -943,6 +900,7 @@ void pausa(){
     getchar();
     printf("\n\nPresione enter para continuar....");
     getchar();
+    system("clear");
     return;
 }
 void salir(){
