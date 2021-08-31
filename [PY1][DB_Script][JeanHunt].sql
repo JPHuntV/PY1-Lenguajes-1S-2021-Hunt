@@ -261,3 +261,58 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+
+
+
+DROP procedure IF EXISTS `topAulas`;
+
+DELIMITER $$
+USE `gestionDeAulas`$$
+CREATE PROCEDURE `topAulas` ()
+BEGIN
+	select  nombreAula, count(nombreAula) as cantidad from Reservas
+	group by nombreAula
+	order by cantidad Desc
+limit 3;
+END$$
+
+DELIMITER ;
+
+
+
+DROP procedure IF EXISTS `topProfesores`;
+
+DELIMITER $$
+USE `gestionDeAulas`$$
+CREATE PROCEDURE `topProfesores` ()
+BEGIN
+	select p.nombre, count(p.nombre) as cantidad from Reservas r
+	inner join Cursos c on c.codigoCurso = r.codigoCurso
+	inner join CursosXPeriodo per on per.codigoCurso = c.codigoCurso
+	inner join Profesor p on p.cedula = per.cedulaProfesor
+	group by p.nombre
+	order by cantidad Desc
+limit 3;
+END$$
+
+DELIMITER ;
+
+
+DROP procedure IF EXISTS `reservasMesAnio`;
+
+DELIMITER $$
+USE `gestionDeAulas`$$
+CREATE PROCEDURE `reservasMesAnio` ()
+BEGIN
+	select month(fecha), year(fecha) ,count(*) as cantidad from Reservas
+	group by month(fecha), year(fecha);
+END$$
+
+DELIMITER ;
+
+
+
+
+
+
