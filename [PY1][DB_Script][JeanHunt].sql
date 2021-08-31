@@ -312,7 +312,50 @@ END$$
 DELIMITER ;
 
 
+DROP procedure IF EXISTS `getReservasByAula`;
 
+DELIMITER $$
+USE `gestionDeAulas`$$
+CREATE PROCEDURE `getReservasByAula` (in pAula varchar(4))
+BEGIN
+	select * from Reservas
+    where nombreAula = pAula;
+END$$
+
+DELIMITER ;
+
+
+DROP procedure IF EXISTS `getReservasByCurso`;
+
+DELIMITER $$
+USE `gestionDeAulas`$$
+CREATE PROCEDURE `getReservasByCurso` (in pAnio int, in pPeriodo int, in pCodigoCurso varchar(6), in pGrupo int)
+BEGIN
+	select codigoReserva, fecha, horaInicio, horaFin, nombreAula from Reservas
+    where anio = pAnio and periodo = pPeriodo and codigoCurso = pCodigoCurso and grupo = pGrupo
+    order by fecha and horaInicio and nombreAula asc;
+END$$
+
+DELIMITER ;
+
+
+
+DROP procedure IF EXISTS `getReservasByDia`;
+
+DELIMITER $$
+USE `gestionDeAulas`$$
+CREATE PROCEDURE `getReservasByDia` (in pFecha date)
+BEGIN
+	select a.nombre, r.codigoReserva, r.anio, r.periodo, r.codigoCurso, r.grupo, r.horaInicio, r.horaFin
+	from Aulas a
+	left join 
+    (
+		select * from Reservas
+		where fecha = pFecha
+    ) r on a.nombre = r.nombreAula;
+END$$
+
+DELIMITER ;
 
 
 
