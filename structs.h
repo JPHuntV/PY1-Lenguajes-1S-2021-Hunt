@@ -31,14 +31,14 @@ struct CursoXPeriodo
 
 struct Reserva
 {
-    char codigoReserva[6];
+    char *codigoReserva;
     char fecha[10];
-    char horaInicio[5];
-    char horaFinal[5];
-    char nombreAula[4];
-    int anio[4];
-    int periodo[1];
-    char codigoCurso[6];
+    char horaInicio[8];
+    char horaFinal[8];
+    char *nombreAula;
+    int anio;
+    int periodo;
+    char *codigoCurso;
     int grupo;
 };
 
